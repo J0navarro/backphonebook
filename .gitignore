@@ -1,0 +1,4 @@
+# Ignorar la carpeta de módulos de Node
+backphonebook/node_modules/
+# Otras reglas (opcional)
+backphonebook/*.env
