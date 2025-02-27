@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+app.use(express.static('dist'))
 const bodyParser = require('body-parser');
 const morgan = require('morgan')
 const cors = require('cors')
@@ -16,6 +17,7 @@ morgan.token('body', (req) => {
 
 // Configurar Morgan para mostrar el método, la URL y el cuerpo de las solicitudes POST
 app.use(morgan(':method :url :body'));
+
 
 let persons = [
     {
