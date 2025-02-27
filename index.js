@@ -81,10 +81,10 @@ app.delete('/api/persons/:id', (request, response) => {
     }    
 });
 
-app.post('/api/persons/:name/:number', (request, response) => {
+app.post('/api/persons/', (request, response) => {
     const id = generateId(); // Genera un nuevo ID
-    const name = request.params.name; // Obtiene el nombre de los parámetros de la URL
-    const number = request.params.number; // Obtiene el número de los parámetros de la URL
+    const name = request.body.name; // Obtiene el nombre de los parámetros de la URL
+    const number = request.body.number; // Obtiene el número de los parámetros de la URL
 
     // Verifica si el nombre o el número están vacíos
     if (!name || !number) {
