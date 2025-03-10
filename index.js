@@ -30,10 +30,10 @@ const verificarParametros = (parametrosRequeridos) => {
 // Rutas
 app.get('/api/persons', (req, res, next) => {
   Person.find({}).then(result => res.json(result))
-  .catch(error => {
-    console.log(error)
-    next(error)
-  });
+    .catch(error => {
+      console.log(error)
+      next(error)
+    });
 });
 
 app.get('/info', (req, res) => {
@@ -51,10 +51,10 @@ app.get('/api/persons/:id', (req, res, next) => {
       res.status(404).end();
     }
   })
-  .catch(error => {
-    console.log(error)
-    next(error)
-  });
+    .catch(error => {
+      console.log(error)
+      next(error)
+    });
 });
 
 app.put('/api/persons/', (request, response, next) => {
@@ -63,7 +63,7 @@ app.put('/api/persons/', (request, response, next) => {
   // Crea un objeto solo con los campos que deseas actualizar
   const updateData = { name, number };
 
-  Person.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+  Person.findByIdAndUpdate(id, updateData, { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       if (updatedPerson) {
         response.json(updatedPerson);
@@ -79,7 +79,8 @@ app.put('/api/persons/', (request, response, next) => {
 
 
 app.delete('/api/persons/:id', (req, res, next) => {
-  const id = Number(req.params.id);
+  const id = req.params.id;
+  console.log(req.params)
   Person.findByIdAndDelete(id).then(result => {
     if (result) {
       res.status(204).end();
@@ -87,45 +88,49 @@ app.delete('/api/persons/:id', (req, res, next) => {
       res.status(404).end();
     }
   })
-  .catch(error => {
-    console.log(error)
-    next(error)
-  });
+    .catch(error => {
+      console.log(error)
+      next(error)
+    });
 });
 
-app.post('/api/persons', verificarParametros(['name', 'number']), (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const { name, number } = req.body;
 
   const person = new Person({ name, number });
   person.save().then(savedPerson => res.status(201).json(savedPerson))
-  .catch(error => {
-    console.log(error)
-    response.status(500).end()
+    .catch(error => {
+      console.log(error)
+      next(error)
+    });
   });
-});
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
+  const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+  }
 
-// controlador de solicitudes con endpoint desconocido
-app.use(unknownEndpoint)
+  // controlador de solicitudes con endpoint desconocido
+  app.use(unknownEndpoint)
 
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  } 
 
-  next(error)
-}
+  const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
 
-// este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
-app.use(errorHandler)
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+      return response.status(400).json({ error: error.message })
+    }
 
-// Iniciar el servidor
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+    next(error)
+  }
+
+  // este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
+  app.use(errorHandler)
+
+  // Iniciar el servidor
+  const PORT = process.env.PORT;
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+  });
